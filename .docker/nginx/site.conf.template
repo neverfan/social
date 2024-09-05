@@ -1,0 +1,25 @@
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Forwarded-Proto  $scheme;
+
+
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server ipv6only=on;
+
+    server_name ENV_NGINX_HOST;
+
+    root /var/www/ENV_NGINX_PUBLIC_PATH;
+    index index.php index.html index.htm;
+
+    # issue with ip and the nginx proxy
+    real_ip_header X-Forwarded-For;
+
+    location / {
+         try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}

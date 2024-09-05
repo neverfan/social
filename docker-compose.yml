@@ -1,0 +1,93 @@
+services:
+  application:
+    build:
+      context: .
+      dockerfile: ./.docker/app/Dockerfile
+    volumes:
+      - .:/var/www
+
+  nginx:
+    build:
+      context: ./.docker/nginx
+      dockerfile: Dockerfile
+    expose:
+      - "80"
+    ports:
+      - "8080:80"
+    volumes:
+      - ./.docker/nginx/site.conf:/site.conf
+    volumes_from:
+      - application
+    depends_on:
+      - php
+    working_dir: /var/www
+    stop_grace_period: 1s
+    environment:
+      - ENV_NGINX_PHP_CONTAINER_HOST=php-fpm
+      - ENV_NGINX_HOST=localhost
+      - ENV_NGINX_PUBLIC_PATH=public
+      - CRONTAB_LARAVEL_SCHEDULER_ENABLED=true
+    networks:
+      - social
+
+  php:
+    container_name: php-fpm
+    build:
+      context: ./.docker/php
+      dockerfile: Dockerfile
+    volumes:
+      - .:/var/www
+      - ./.docker/php/fpm-site.conf:/usr/local/etc/php-fpm.d/900-site.conf
+    working_dir: /var/www
+    expose:
+      - "9000"
+    labels:
+      traefik.enable: "false"
+    user: '1000'
+    tty: true
+    environment:
+      - PHP_FPM_PM_MODE=dynamic
+      - PHP_FPM_PM_MAX_CHILDREN=20
+    networks:
+      - social
+#    depends_on:
+#      - redis-cache
+
+#  env-mix:
+#    image: gitlab.kodeks.ru:4567/kodeks/npm/env-mix
+#    volumes_from:
+#      - application
+#    environment:
+#      - ENV_DEFAULT=.env.default
+#      - ENV_CURRENT=.env.local
+#      - ENV_RESULT=.env
+
+
+  postgresql:
+    image: postgres:16.2
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USERNAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    volumes:
+      - pg_vol:/pgdata
+    ports:
+      - "${FORWARD_DB_PORT:-5432}:5432"
+    networks:
+      - social
+
+networks:
+  social:
+    driver: bridge
+
+volumes:
+  pg_vol:
+    driver: "local"
+  pg_vol_testing:
+    driver: "local"
