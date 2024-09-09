@@ -16,3 +16,19 @@ indent_size = 2
 
 [docker-compose.yml]
 indent_size = 4
+
+[*.json]
+indent_size = 2
+
+[{node_modules,vendor}/**]
+; use default in this files
+indent_style = unset
+indent_size = unset
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+[*.{coffee,js,html,vue}]
+indent_size = 2
+
+[Makefile]
+indent_style = tab

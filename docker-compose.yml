@@ -13,13 +13,13 @@ services:
     expose:
       - "80"
     ports:
-      - "8080:80"
+      - "${FORWARD_NGINX_PORT:-80}:80"
     volumes:
       - ./.docker/nginx/site.conf:/site.conf
     volumes_from:
       - application
     depends_on:
-      - php
+      - php-fpm
     working_dir: /var/www
     stop_grace_period: 1s
     environment:
@@ -30,8 +30,8 @@ services:
     networks:
       - social
 
-  php:
-    container_name: php-fpm
+  php-fpm:
+    container_name: "php-fpm"
     build:
       context: ./.docker/php
       dockerfile: Dockerfile
@@ -50,35 +50,46 @@ services:
       - PHP_FPM_PM_MAX_CHILDREN=20
     networks:
       - social
-#    depends_on:
-#      - redis-cache
-
-#  env-mix:
-#    image: gitlab.kodeks.ru:4567/kodeks/npm/env-mix
-#    volumes_from:
-#      - application
-#    environment:
-#      - ENV_DEFAULT=.env.default
-#      - ENV_CURRENT=.env.local
-#      - ENV_RESULT=.env
-
 
   postgresql:
-    image: postgres:16.2
+    image: postgres:16.4
+    container_name: "postgresql"
     environment:
       POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: /data/postgres
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USERNAME}" ]
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: always
     volumes:
-      - pg_vol:/pgdata
+      - pg_vol:/data/postgres
     ports:
       - "${FORWARD_DB_PORT:-5432}:5432"
+    networks:
+      - social
+
+  postgresql-testing:
+    image: postgres:16.4
+    container_name: "postgresql-testing"
+    environment:
+      POSTGRES_DB: ${TESTING_DB_DATABASE}
+      POSTGRES_USER: ${TESTING_DB_USERNAME}
+      POSTGRES_PASSWORD: ${TESTING_DB_PASSWORD}
+      PGDATA: /data/postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USERNAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+    volumes:
+      - pg_vol-testing:/data/postgres
+    ports:
+      - "${TESTING_FORWARD_DB_PORT:-5432}:5432"
     networks:
       - social
 
@@ -89,5 +100,5 @@ networks:
 volumes:
   pg_vol:
     driver: "local"
-  pg_vol_testing:
+  pg_vol-testing:
     driver: "local"

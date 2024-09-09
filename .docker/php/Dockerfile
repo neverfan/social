@@ -20,7 +20,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --quiet lsb-relea
     apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
-COPY php.ini "$PHP_INI_DIR/conf.d/yyy-kodeks-php.ini"
+COPY php.ini "$PHP_INI_DIR/conf.d/yyy-project-php.ini"
 
 RUN mkdir -p /usr/local/lib/composer /usr/local/scripts /usr/local/etc/php-exts /tmp/cache
 COPY scripts/*.sh /usr/local/scripts/

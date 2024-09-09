@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Support\Response\Response;
 use Illuminate\Support\ServiceProvider;
+use App\Support\Response\Interfaces\ApiResponseInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(ApiResponseInterface::class, Response::class);
     }
 
     /**
