@@ -24,12 +24,12 @@ class UserFactory extends Factory
         $gender = fake()->randomElement(['male', 'female']);
 
         return [
-            'password' => static::$password ??= 'password',
+            'password' => static::$password ??= fake()->password(),
             'first_name' => fake()->firstName($gender),
             'last_name' => fake()->lastName($gender),
             'gender' => $gender,
             'city' => fake()->city(),
-            'birth_date' => now()->subDays((365 * random_int(18, 55)) - random_int(1, 365)),
+            'birth_date' => fake()->dateTimeBetween('-120 years', '-14 years')->format('Y-m-d'),
             'biography' => fake()->sentences(1, 3),
             'created_at' => now(),
             'updated_at' => now(),
