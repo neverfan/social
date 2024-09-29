@@ -19,4 +19,4 @@ migrate-testing:
 	docker compose run -e DB_CONNECTION=testing --rm php-fpm php artisan migrate:fresh
 
 tinker:
-	docker compose run --rm php-fpm php artisan tinker
+	docker compose run --rm php-fpm php -d memory_limit=2G artisan tinker
