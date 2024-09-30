@@ -25,3 +25,7 @@ Route::get('/user/current', [UserController::class, 'current'])
 Route::get('/user/refresh', [UserController::class, 'refresh'])
     ->middleware(Authenticate::class)
     ->name('user.refresh');
+
+//поиск анкет
+Route::get('/user/search', [UserController::class, 'search'])
+    ->name('user.search');

@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class LoadUserData extends Command
@@ -62,7 +63,7 @@ class LoadUserData extends Command
                 'city' => $city,
                 'birth_date' => Carbon::parse($date)->format('Y-m-d'),
                 'biography' => fake()->sentences(1, 3),
-                'password' => 'password',
+                'password' => 'password',//Hash::make('password'),
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ];
