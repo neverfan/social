@@ -1,104 +1,117 @@
 services:
-  application:
-    build:
-      context: .
-      dockerfile: ./.docker/app/Dockerfile
-    volumes:
-      - .:/var/www
+    application:
+        build:
+            context: .
+            dockerfile: ./.docker/app/Dockerfile
+        volumes:
+            - .:/var/www
 
-  nginx:
-    build:
-      context: ./.docker/nginx
-      dockerfile: Dockerfile
-    expose:
-      - "80"
-    ports:
-      - "${FORWARD_NGINX_PORT:-80}:80"
-    volumes:
-      - ./.docker/nginx/site.conf:/site.conf
-    volumes_from:
-      - application
-    depends_on:
-      - php-fpm
-    working_dir: /var/www
-    stop_grace_period: 1s
-    environment:
-      - ENV_NGINX_PHP_CONTAINER_HOST=php-fpm
-      - ENV_NGINX_HOST=localhost
-      - ENV_NGINX_PUBLIC_PATH=public
-      - CRONTAB_LARAVEL_SCHEDULER_ENABLED=true
-    networks:
-      - social
+    nginx:
+        build:
+            context: ./.docker/nginx
+            dockerfile: Dockerfile
+        expose:
+            - "80"
+        ports:
+            - "${FORWARD_NGINX_PORT:-80}:80"
+        volumes:
+            - ./.docker/nginx/site.conf:/site.conf
+        volumes_from:
+            - application
+        depends_on:
+            - php-fpm
+        working_dir: /var/www
+        stop_grace_period: 1s
+        environment:
+            - ENV_NGINX_PHP_CONTAINER_HOST=php-fpm
+            - ENV_NGINX_HOST=localhost
+            - ENV_NGINX_PUBLIC_PATH=public
+            - CRONTAB_LARAVEL_SCHEDULER_ENABLED=true
+        networks:
+            - social
 
-  php-fpm:
-    container_name: "php-fpm"
-    build:
-      context: ./.docker/php
-      dockerfile: Dockerfile
-    volumes:
-      - .:/var/www
-      - ./.docker/php/fpm-site.conf:/usr/local/etc/php-fpm.d/900-site.conf
-    working_dir: /var/www
-    expose:
-      - "9000"
-    labels:
-      traefik.enable: "false"
-    user: '1000'
-    tty: true
-    environment:
-      - PHP_FPM_PM_MODE=dynamic
-      - PHP_FPM_PM_MAX_CHILDREN=20
-    networks:
-      - social
+    php-fpm:
+        container_name: "php-fpm"
+        build:
+            context: ./.docker/php
+            dockerfile: Dockerfile
+        volumes:
+            - .:/var/www
+            - ./.docker/php/fpm-site.conf:/usr/local/etc/php-fpm.d/900-site.conf
+        working_dir: /var/www
+        expose:
+            - "9000"
+        labels:
+            traefik.enable: "false"
+        user: '1000'
+        tty: true
+        environment:
+            - PHP_FPM_PM_MODE=dynamic
+            - PHP_FPM_PM_MAX_CHILDREN=20
+        networks:
+            - social
 
-  postgresql:
-    image: postgres:16.4
-    container_name: "postgresql"
-    environment:
-      POSTGRES_DB: ${DB_DATABASE}
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      PGDATA: /data/postgres
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USERNAME}" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: always
-    volumes:
-      - pg_vol:/data/postgres
-    ports:
-      - "${FORWARD_DB_PORT:-5432}:5432"
-    networks:
-      - social
+    postgresql:
+        image: postgres:16.4
+        container_name: "postgresql"
+        environment:
+            POSTGRES_DB: ${DB_DATABASE}
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            PGDATA: /data/postgres
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USERNAME}" ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        restart: always
+        volumes:
+            - pg_vol:/data/postgres
+        ports:
+            - "${FORWARD_DB_PORT:-5432}:5432"
+        networks:
+            - social
 
-  postgresql-testing:
-    image: postgres:16.4
-    container_name: "postgresql-testing"
-    environment:
-      POSTGRES_DB: ${TESTING_DB_DATABASE}
-      POSTGRES_USER: ${TESTING_DB_USERNAME}
-      POSTGRES_PASSWORD: ${TESTING_DB_PASSWORD}
-      PGDATA: /data/postgres
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USERNAME}" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: always
-    volumes:
-      - pg_vol-testing:/data/postgres
-    ports:
-      - "${TESTING_FORWARD_DB_PORT:-5432}:5432"
-    networks:
-      - social
+    postgresql-testing:
+        image: postgres:16.4
+        container_name: "postgresql-testing"
+        environment:
+            POSTGRES_DB: ${TESTING_DB_DATABASE}
+            POSTGRES_USER: ${TESTING_DB_USERNAME}
+            POSTGRES_PASSWORD: ${TESTING_DB_PASSWORD}
+            PGDATA: /data/postgres
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -d ${DB_DATABASE} -U ${DB_USERNAME}" ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        restart: always
+        volumes:
+            - pg_vol-testing:/data/postgres
+        ports:
+            - "${TESTING_FORWARD_DB_PORT:-5432}:5432"
+        networks:
+            - social
+
+    influxdb:
+        image: influxdb:2.7-alpine
+        container_name: influxdb
+        restart: unless-stopped
+        ports:
+            - 8086:8086
+        networks:
+            - social
+        volumes:
+            - influx-data:/var/lib/influxdb2
+            - ./influxdb2/conf:/etc/influxdb2
 
 networks:
-  social:
-    driver: bridge
+    social:
+        driver: bridge
 
 volumes:
-  pg_vol:
-    driver: "local"
-  pg_vol-testing:
-    driver: "local"
+    pg_vol:
+        driver: "local"
+    pg_vol-testing:
+        driver: "local"
+    influx-data:
