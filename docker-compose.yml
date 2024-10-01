@@ -99,11 +99,28 @@ services:
         restart: unless-stopped
         ports:
             - 8086:8086
-        networks:
-            - social
         volumes:
             - influx-data:/var/lib/influxdb2
             - ./influxdb2/conf:/etc/influxdb2
+        networks:
+            - social
+
+    grafana:
+        image: grafana/grafana-enterprise
+        container_name: grafana
+        depends_on:
+            - influxdb
+        restart: unless-stopped
+        environment:
+            - GF_SECURITY_ADMIN_USER=admin
+            - GF_SECURITY_ADMIN_PASSWORD=password
+            - GF_INSTALL_PLUGINS=grafana-clock-panel
+        ports:
+            - '3000:3000'
+        volumes:
+            - 'grafana_storage:/var/lib/grafana'
+        networks:
+            - social
 
 networks:
     social:
@@ -114,4 +131,5 @@ volumes:
         driver: "local"
     pg_vol-testing:
         driver: "local"
-    influx-data:
+    influx-data: {}
+    grafana_storage: {}

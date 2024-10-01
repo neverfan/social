@@ -113,15 +113,18 @@ class UserController extends Controller
      */
     public function search(SearchRequest $request): JsonResponse
     {
+
         $paginator = DB::table('users')
             ->select([
-                'id', 'first_name', 'last_name', 'birth_date', 'biography', 'city',
+                'id', 'first_name', 'last_name', 'birth_date', 'city',
             ])
             ->when($request->get('first_name'), function (Builder $query) use ($request) {
-                $query->whereLike('first_name', "{$request->get('first_name')}%");
+                $query->whereRaw('lower(first_name) like :first_name', ['first_name' => mb_strtolower($request->get('first_name')) . '%']);
+                //$query->whereRaw('first_name ilike :first_name', ['first_name' => $request->get('first_name') . '%']);
             })
             ->when($request->get('last_name'), function (Builder $query) use ($request) {
-                $query->whereLike('last_name', "{$request->get('last_name')}%");
+                $query->whereRaw('lower(last_name) like :last_name', ['last_name' => mb_strtolower($request->get('last_name')) . '%']);
+                //$query->whereRaw('last_name ilike :last_name', ['last_name' => $request->get('last_name') . '%']);
             })
             ->orderBy('id')
             ->paginate(

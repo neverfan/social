@@ -20,3 +20,6 @@ migrate-testing:
 
 tinker:
 	docker compose run --rm php-fpm php -d memory_limit=2G artisan tinker
+
+load-users:
+	docker compose run --rm php-fpm php -d memory_limit=2G artisan app:load-user-data
