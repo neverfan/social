@@ -113,7 +113,6 @@ class UserController extends Controller
      */
     public function search(SearchRequest $request): JsonResponse
     {
-
         $paginator = DB::table('users')
             ->select([
                 'id', 'first_name', 'last_name', 'birth_date', 'city',
