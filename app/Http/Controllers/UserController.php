@@ -37,10 +37,8 @@ class UserController extends Controller
             'created_at' => now(),
         ];
 
-        $userId = DB::table('users')->insertGetId($dataset);
-
         return $this->response->success([
-            'user' => $this->getUserById($userId, ['password'])
+            'user_id' => DB::table('users')->insertGetId($dataset)
         ]);
     }
 

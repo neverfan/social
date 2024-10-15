@@ -32,9 +32,20 @@ return [
     'connections' => [
 
         'local' => [
+            'read' => [
+                'host' => [
+                    env('SLAVE_NAME_1', 'db2'),
+                    env('SLAVE_NAME_2', 'db3'),
+                ],
+            ],
+            'write' => [
+                'host' => [
+                    env('DB_MASTER_HOST', 'db1'),
+                ],
+            ],
+            //'host' => env('DB_MASTER_HOST', 'localhost'),
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
             'database' => env('DB_DATABASE', 'social'),
             'username' => env('DB_USERNAME', 'postgres'),
