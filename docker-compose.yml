@@ -146,7 +146,8 @@ services:
 
     postgres-testing:
         image: postgres:16.4
-        container_name: "postgres-testing"
+        container_name: postgres-testing
+        hostname: postgres-testing
         restart: always
         environment:
             POSTGRES_DB: ${TESTING_DB_DATABASE}
