@@ -1,16 +1,11 @@
 <?php
 
-namespace App\Http\Requests\User;
+namespace App\Http\Requests\Friend;
 
 use App\Http\Requests\ApiRequest;
 
-class ShowRequest extends ApiRequest
+class DeleteRequest extends ApiRequest
 {
-    protected function prepareForValidation(): void
-    {
-        $this->merge(['user_id' => $this->route('user_id')]);
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -19,7 +14,7 @@ class ShowRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|int',
+            'user_id' => 'required|int|exists:users,id',
         ];
     }
 }

@@ -6,13 +6,13 @@ use App\Exceptions\Auth\UnauthorizedException;
 use App\Http\Requests\ApiRequest;
 use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\SearchRequest;
-use App\Http\Requests\User\ShowRequest;
+use App\Http\Requests\User\GetRequest;
 use App\Http\Requests\User\LoginRequest;
+use App\Models\User;
 use App\Support\Auth\JwtToken;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -25,20 +25,14 @@ class UserController extends Controller
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $dataset = [
+        $data = array_merge($request->safe()->toArray(), [
             'password' => Hash::make($request->get('password')),
-            'first_name' => $request->get('first_name'),
-            'last_name' => $request->get('last_name'),
-            'gender' => $request->get('gender'),
-            'city' => $request->get('city'),
-            'birth_date' => $request->get('birth_date'),
-            'biography' =>  $request->get('biography'),
             'updated_at' => now(),
             'created_at' => now(),
-        ];
+        ]);
 
         return $this->response->success([
-            'user_id' => DB::table('users')->insertGetId($dataset)
+            'user_id' => DB::table('users')->insertGetId($data)
         ]);
     }
 
@@ -95,13 +89,13 @@ class UserController extends Controller
     }
 
     /**
-     * @param ShowRequest $request
+     * @param User $user
      * @return JsonResponse
      */
-    public function get(ShowRequest $request): JsonResponse
+    public function get(User $user): JsonResponse
     {
         return $this->response->success([
-            'user' => $this->getUserById($request->route('user_id'), ['password']),
+            'user' => $user,
         ]);
     }
 

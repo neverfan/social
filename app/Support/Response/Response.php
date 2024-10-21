@@ -67,6 +67,19 @@ class Response implements ApiResponseInterface
     }
 
     /**
+     * Вернуть ответ с кодом ошибки.
+     *
+     * @param int $code
+     * @return JsonResponse
+     */
+    public function failed(int $code = BaseResponse::HTTP_BAD_REQUEST): JsonResponse
+    {
+        return $this->json([
+            'data' => [],
+        ], $code);
+    }
+
+    /**
      * Вернуть данные с пагинатором
      *
      * @param AbstractPaginator $paginator

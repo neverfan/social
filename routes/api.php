@@ -1,31 +1,90 @@
 <?php
 
+use App\Http\Controllers\FriendController;
 use App\Http\Controllers\UserController;
-use App\Http\Middleware\Authenticate;
 use Illuminate\Support\Facades\Route;
 
-//получение данных пользователя по id
-Route::get('/user/get/{user_id}', [UserController::class, 'get'])
-    ->name('user.get');
+/**
+ * User
+ */
+Route::group([
+    'prefix' => '/user',
+    'controller' => UserController::class,
+    'as' => 'user'
+], function () {
+    //получение данных пользователя по id
+    Route::get('/get/{user}', 'get')->name('.get');
 
-//получение данных пользователя по id
-Route::post('/user/register', [UserController::class, 'register'])
-    ->name('user.register');
+    //получение данных пользователя по id
+    Route::post('/register', 'register')->name('.register');
 
-//авторизация
-Route::post('/user/login', [UserController::class, 'login'])
-    ->name('user.login');
+    //авторизация
+    Route::post('/login', 'login')->name('.login');
 
-//получение данных текущего пользователя (требуется авторизация)
-Route::get('/user/current', [UserController::class, 'current'])
-    ->middleware(Authenticate::class)
-    ->name('user.current');
+    //получение данных текущего пользователя (требуется авторизация)
+    Route::get('/current', [UserController::class, 'current'])
+        ->middleware('auth')
+        ->name('.current');
 
-//обновить токен текущего пользователя (требуется авторизация)
-Route::get('/user/refresh', [UserController::class, 'refresh'])
-    ->middleware(Authenticate::class)
-    ->name('user.refresh');
+    //обновить токен текущего пользователя (требуется авторизация)
+    Route::get('/refresh', 'refresh')
+        ->middleware('auth')
+        ->name('.refresh');
 
-//поиск анкет
-Route::get('/user/search', [UserController::class, 'search'])
-    ->name('user.search');
+    //поиск анкет
+    Route::get('/search', 'search')->name('.search');
+});
+
+/**
+ * Friend
+ */
+Route::group([
+    'prefix' => '/friend',
+    'controller' => FriendController::class,
+    'as' => 'friend',
+    'middleware' => 'auth'
+], function () {
+    //Добавить друга
+    Route::put('/set/{friend}', 'set')->name('.set');
+
+    //Удалить друга
+    Route::put('/delete/{friend}', 'delete')->name('.delete');
+});
+
+/**
+ * Post
+ */
+Route::group([
+    'prefix' => '/post',
+    'controller' => \App\Http\Controllers\PostController::class,
+    'as' => 'post',
+], function () {
+    //Получить пост
+    Route::get('/get/{post}', 'get')->name('.get');
+
+    //Требуется авторизация
+    Route::group(['middleware' => 'auth'], function () {
+        //Создать пост
+        Route::post('/create', 'create')->name('.create');
+
+        //Обновить пост
+        Route::put('/update/{post}', 'update')->name('.update');
+
+        //Удалить пост
+        Route::put('/delete/{post}', 'delete')->name('.delete');
+
+        //Лента постов друзей
+        Route::get('/feed', 'feed')->name('.feed');
+    });
+});
+
+
+
+
+
+
+
+
+
+
+

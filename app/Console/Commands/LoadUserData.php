@@ -63,7 +63,8 @@ class LoadUserData extends Command
                 'city' => $city,
                 'birth_date' => Carbon::parse($date)->format('Y-m-d'),
                 'biography' => fake()->sentences(1, 3),
-                'password' => 'password',//Hash::make('password'),
+                'password' => '$2y$12$3I0W3kTOQubwCthd.WZz5OCew6aEddyvpcgLqcFCQ59nyniQAmXSu',
+                //'password' => Hash::make('password'),
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ];

@@ -19,7 +19,7 @@ up:
 #############################################
 
 migrate:
-	docker compose run --rm php-fpm php artisan migrate:fresh
+	docker compose run --rm php-fpm php artisan migrate
 
 migrate-testing:
 	docker compose run -e DB_CONNECTION=testing --rm php-fpm php artisan migrate:fresh

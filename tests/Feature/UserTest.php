@@ -25,7 +25,7 @@ class UserTest extends TestCase
             'password' => 'password',
         ];
 
-        $response = $this->postJson('/api/user/register', $data);
+        $response = $this->postJson(route('user.register'), $data);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -56,7 +56,7 @@ class UserTest extends TestCase
             'password' => Hash::make('password'),
         ]);
 
-        $response = $this->postJson('/api/user/login', [
+        $response = $this->postJson(route('user.login'), [
             'id' => $user->id,
             'password' => 'password',
         ]);
@@ -77,13 +77,11 @@ class UserTest extends TestCase
     public function testGetCurrent(): void
     {
         User::factory()->createMany(10);
-
         $user = User::factory()->create();
 
-        $token = JwtToken::generate($user->id);
-
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token->getBearer())
-            ->getJson('/api/user/current');
+        $response = $this
+            ->withHeader('Authorization', 'Bearer ' . $user->token())
+            ->getJson(route('user.current'));
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -116,8 +114,7 @@ class UserTest extends TestCase
         User::factory()->createMany(10);
 
         $user = User::factory()->create();
-
-        $response = $this->getJson('/api/user/get/' . $user->id);
+        $response = $this->getJson(route('user.get', ['user' => $user->id]));
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -149,10 +146,9 @@ class UserTest extends TestCase
     {
         User::factory()->createMany(10);
         $user = User::factory()->create();
-        $token = JwtToken::generate($user->id);
 
-        $response = $this->withHeader('Authorization', 'Bearer ' . $token->getBearer())
-            ->getJson('/api/user/refresh');
+        $response = $this->withHeader('Authorization', 'Bearer ' . $user->token())
+            ->getJson(route('user.refresh'));
 
         $response->assertStatus(200)
             ->assertJsonStructure([
