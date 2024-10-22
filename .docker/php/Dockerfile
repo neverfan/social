@@ -14,7 +14,7 @@ ENV PICKLE_PECL_UNSAFE yes
 
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --quiet lsb-release gnupg apt-utils nano netbase curl wget postgresql-client && \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --quiet lsb-release gnupg apt-utils nano netbase curl wget postgresql-client supervisor && \
     IPE_ASPELL_LANGUAGES='en ru' install-php-extensions @composer opcache openssl imap mysqli libxml simplexml intl zip exif Imagick/imagick@master gd sockets pgsql pdo pdo_mysql pdo_pgsql bcmath pcntl pspell tidy redis xdebug && \
     rm $PHP_INI_DIR/conf.d/docker-php-ext-xdebug.ini && \
     apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
