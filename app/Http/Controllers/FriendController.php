@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\FriendPushed;
+use App\Events\FriendRejected;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +16,11 @@ class FriendController extends Controller
      */
     public function set(User $friend): JsonResponse
     {
-        Auth::user()->friends()->attach($friend);
+        /** @var User $user */
+        $user = Auth::user();
+        $user->pushFriend($friend->id);
+
+        FriendPushed::dispatch($user, $friend);
 
         return $this->response->success();
     }
@@ -25,7 +31,11 @@ class FriendController extends Controller
      */
     public function delete(User $friend): JsonResponse
     {
-        Auth::user()->friends()->detach($friend);
+        /** @var User $user */
+        $user = Auth::user();
+        $user->rejectFriend($friend->id);
+
+        FriendRejected::dispatch($user, $friend);
 
         return $this->response->success();
     }

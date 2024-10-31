@@ -19,6 +19,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | TTL (Time to live for cache) in seconds
+    |--------------------------------------------------------------------------
+    |
+    */
+
+    'ttl' => 60*60,
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache Stores
     |--------------------------------------------------------------------------
     |
@@ -73,8 +82,8 @@ return [
 
         'redis' => [
             'driver' => 'redis',
-            'connection' => env('REDIS_CACHE_CONNECTION', 'cache'),
-            'lock_connection' => env('REDIS_CACHE_LOCK_CONNECTION', 'default'),
+            'connection' => 'cache',
+            'lock_connection' => 'default',
         ],
 
         'dynamodb' => [

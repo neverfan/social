@@ -4,10 +4,12 @@ setup:
 	make up
 	make install
 	sleep 10 && make migrate
+	sleep 10 && make migrate-testing
 
 install:
 	docker compose run --rm php-fpm composer install --ignore-platform-reqs
-	docker compose run --rm php-fpm artisan horizon:install
+	docker compose run --rm php-fpm php artisan horizon:install
+	docker compose run --rm php-fpm php artisan optimize
 
 update:
 	docker compose run --rm php-fpm composer update --ignore-platform-reqs
@@ -20,7 +22,7 @@ up:
 #############################################
 
 migrate:
-	docker compose run --rm php-fpm php artisan migrate
+	docker compose run --rm php-fpm php artisan migrate:fresh
 
 migrate-testing:
 	docker compose run -e DB_CONNECTION=testing --rm php-fpm php artisan migrate:fresh
@@ -32,8 +34,24 @@ tinker:
 #			UPLOAD USERS DATA				#
 #############################################
 
+# Запуск demo-режима
+demo:
+	make setup
+	make load-users
+	make load-posts
+	make cache-warm
+
+# Загрузка пользователей с генерацией celebrities (id: 1, 10, 100, 1000, 10000, 100000)
 load-users:
 	docker compose run --rm php-fpm php -d memory_limit=2G artisan app:load-user-data
+
+# Генерация постов
+load-posts:
+	docker compose run --rm php-fpm php -d memory_limit=2G artisan app:generate-posts-data --startId=1 --users=1000000 --posts=3
+
+# Прогрев кэша для активных/всех пользователей
+cache-warm:
+	docker compose run --rm php-fpm php -d memory_limit=2G artisan cache:warm --only_active=1 --active_sub_days=1 --batch_size=10000
 
 #############################################
 #			REPLICATAION SWITCH				#

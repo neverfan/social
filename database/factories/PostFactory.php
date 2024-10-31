@@ -17,9 +17,13 @@ class PostFactory extends Factory
      */
     public function definition(): array
     {
+        $date = now()->subDays(random_int(1, 365))->subHours(random_int(1, 23))->subSeconds(random_int(1, 59));
+
         return [
             'text' => $this->faker->realText(),
             'user_id' => User::factory(),
+            'created_at' => $date,
+            'updated_at' => $date,
         ];
     }
 }

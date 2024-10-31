@@ -59,8 +59,6 @@ services:
         volumes_from:
             - php-fpm
         working_dir: /var/www
-        depends_on:
-            - redis
         volumes:
             - ./.docker/horizon/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf
         command: php artisan horizon
@@ -172,7 +170,7 @@ services:
 
     postgres-testing:
         image: postgres:16.4
-        container_name: postgres-testing
+        container_name: "postgres-testing"
         hostname: postgres-testing
         restart: always
         environment:
@@ -188,7 +186,7 @@ services:
         volumes:
             - postgres-volume-testing:/data/postgres
         ports:
-            - "${TESTING_FORWARD_DB_PORT:-5432}:5432"
+            - "${TESTING_FORWARD_DB_PORT:-5433}:5432"
         networks:
             - social
 

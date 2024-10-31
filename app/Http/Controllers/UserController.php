@@ -83,8 +83,14 @@ class UserController extends Controller
     {
         $decoded = JwtToken::decode($request->bearerToken());
 
+        /** @var User $user */
+        $user = $request->user();
+
         return $this->response->success([
-            'user' => $this->getUserById($decoded->user_id, ['password']),
+            'user' => $user->toArray(),
+            'subscribers' => [
+                'count' => $user->getSubscribersCount(),
+            ],
         ]);
     }
 

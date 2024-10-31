@@ -3,17 +3,22 @@
 namespace App\Models;
 
 use App\Support\Auth\JwtToken;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
+/**
+ * @property Collection $friends
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
+
+    public const int CELEBRITY_FRIENDS_COUNT = 1000;
 
     /**
      * The attributes that are mass assignable.
@@ -27,6 +32,9 @@ class User extends Authenticatable
         'birthdate',
         'biography',
         'city',
+        'friends',
+        'celebrity',
+        'last_login_at',
     ];
 
     /**
@@ -47,6 +55,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'friends' => AsCollection::class,
         ];
     }
 
@@ -60,8 +69,99 @@ class User extends Authenticatable
         return $this->hasMany(Post::class);
     }
 
-    public function friends(): BelongsToMany
+    public function pushFriend(int $userId): self
     {
-        return $this->belongsToMany(self::class, 'user_friends', 'user_id', 'friend_id');
+        $this->friends = $this->friends->push($userId)->unique()->values()->sort();
+        $this->save();
+
+        return $this;
+    }
+
+    public function pushManyFriends(array $userIds): self
+    {
+        $this->friends = $this->friends->merge($userIds)
+            ->unique()->values()->sort();
+
+        $this->save();
+
+        return $this;
+    }
+
+    public function rejectFriend(int $userId): self
+    {
+        $this->friends = $this->friends->reject(fn($friendId) => $friendId === $userId)
+            ->unique()->values()->sort();
+
+        $this->save();
+
+        return $this;
+    }
+
+    public function isCelebrity(): bool
+    {
+        return $this->celebrity;
+    }
+
+    /**
+     * Подписчики данного пользователя
+     * @param bool $withCache
+     * @return Collection
+     */
+    public function getSubscribers(bool $withCache = true): Collection
+    {
+        $key = "subscribers_user_{$this->id}";
+
+        if (!$withCache) {
+            Cache::forget($key);
+        }
+
+        return Cache::remember($key, config('cache.ttl'), fn() => $this
+            ->newQuery()
+            ->select('id')
+            ->whereRaw("friends @> '[{$this->id}]'")
+            ->pluck('id'));
+    }
+
+    /**
+     * Подписчики данного пользователя
+     * @param bool $withCache
+     * @return int
+     */
+    public function getSubscribersCount(bool $withCache = true): int
+    {
+        $key = "subscribers_count_user_{$this->id}";
+
+        if (!$withCache) {
+            Cache::forget($key);
+        }
+
+        return Cache::remember($key, config('cache.ttl'), fn() => $this
+            ->newQuery()
+            ->whereRaw("friends @> '[{$this->id}]'")
+            ->count());
+    }
+
+    /**
+     * Добавить подписчиков для данного пользователя
+     * @param Collection $subscribers
+     * @return $this
+     */
+    public function addSubscribers(Collection $subscribers): self
+    {
+        $subscribers->each(fn(User $user) => $user->pushFriend($this->id));
+
+        return $this;
+    }
+
+    /**
+     * Получить друзей-знаменитостей данного пользователя
+     * @return Collection
+     */
+    public function getCelebrityFriends(): Collection
+    {
+        return $this->newQuery()
+            ->whereIn('id', $this->friends)
+            ->where('celebrity', true)
+            ->pluck('id');
     }
 }

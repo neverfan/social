@@ -43,7 +43,6 @@ return [
                     env('DB_MASTER_HOST', 'db1'),
                 ],
             ],
-            //'host' => env('DB_MASTER_HOST', 'localhost'),
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
             'port' => env('DB_PORT', '5432'),

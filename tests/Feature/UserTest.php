@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\User;
-use App\Support\Auth\JwtToken;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 

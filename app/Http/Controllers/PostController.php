@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Post\FeedRequest;
+use App\Events\PostCreated;
+use App\Events\PostDeleted;
 use App\Models\Post;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Support\Services\Feed\Feed;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\Post\FeedRequest;
 use App\Http\Requests\Post\CreateRequest;
 use App\Http\Requests\Post\UpdateRequest;
 
@@ -29,12 +32,19 @@ class PostController extends Controller
      */
     public function create(CreateRequest $request): JsonResponse
     {
+        $post = $request->user()->posts()->create($request->safe()->toArray());
+
+        PostCreated::dispatch($post->id, $request->user());
+
         return $this->response->success([
-            'post' => Auth::user()->posts()->create($request->safe()->toArray())
+            'post' => $post
         ]);
     }
 
     /**
+     * Обновление поста.
+     * (!) Не влияет на обновление кэша фидов т.к. в кэше хранится только id постов
+     * и обновление поста не влияет на порядок его вывода.
      * @param Post $post
      * @param UpdateRequest $request
      * @return JsonResponse
@@ -61,8 +71,14 @@ class PostController extends Controller
             return $this->response->failed(403);
         }
 
+        if (!$deleted = $post->delete()) {
+            return $this->response->failed(500);
+        }
+
+        PostDeleted::dispatch($post->id, $request->user());
+
         return $this->response->success([
-            'delete' => $post->delete(),
+            'delete' => $deleted,
         ]);
     }
 
@@ -72,14 +88,12 @@ class PostController extends Controller
      */
     public function feed(FeedRequest $request): JsonResponse
     {
-        //todo: вывести ленту постов всех друзей
-        //todo: В ленте держать последние 1000 обновлений друзей
-        //todo: Лента должна кешироваться
-        //todo: (опционально) Обновление лент работает через очередь.
-        //todo: Есть возможность перестройки кешей из СУБД.
-
         return $this->response->success([
-
-        ]);
+            'posts' => (new Feed($request->user()))
+                ->posts(
+                    $request->get('offset', 0),
+                    $request->get('limit', 20)
+                ),
+            ]);
     }
 }
