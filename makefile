@@ -9,7 +9,7 @@ setup:
 install:
 	docker compose run --rm php-fpm composer install --ignore-platform-reqs
 	docker compose run --rm php-fpm php artisan horizon:install
-	docker compose run --rm php-fpm php artisan optimize
+	docker compose run --rm php-fpm php artisan optimize:clear
 
 update:
 	docker compose run --rm php-fpm composer update --ignore-platform-reqs
