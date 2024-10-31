@@ -70,7 +70,7 @@ class LoadUserData extends Command
                 'biography' => fake()->sentences(1, 3),
                 'password' => '$2y$12$3I0W3kTOQubwCthd.WZz5OCew6aEddyvpcgLqcFCQ59nyniQAmXSu',
                 //'password' => Hash::make('password'),
-                'friends' => json_encode($this->generateFriendIds($celebrityIds)),
+                'friends' => json_encode($this->generateFriendIds($celebrityIds), JSON_THROW_ON_ERROR),
                 'celebrity' => $isCelebrity,
                 'last_login_at' => now()->subDays(random_int(1, 60)),
                 'created_at' => Carbon::now(),

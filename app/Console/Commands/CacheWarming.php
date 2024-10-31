@@ -50,7 +50,6 @@ class CacheWarming extends Command
         $chunkItem = 1;
         DB::table('users')
             ->select('users.id')
-            ->leftJoin('posts', 'users.id', '=', 'posts.user_id')
             // Берем пользователей у которых `last_login_at` меньше N-дней
             ->when($onlyActive, fn($query) => $query->whereDate('last_login_at', '>=', now()->subDays($activeSubDays)))
             ->orderByDesc('last_login_at')// Сортируем по активности, самые активные первые получают кэш
@@ -60,7 +59,7 @@ class CacheWarming extends Command
                     ->name("feeds::cache::warm::batch_{$chunkItem}")
                     ->allowFailures()
                     ->dispatch();
-                $progressBar->advance($batchSize);
+                $progressBar->advance($jobs->count());
                 $chunkItem++;
             });
 
