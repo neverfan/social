@@ -36,7 +36,7 @@ class Feed
         return Post::query()
             ->whereIn('posts.id', $postIds->keys())
             ->orWhere(fn(Builder $query) => $query
-                //Добавляем выборку посты знаменитостей за период постов всех в кэше
+                //Добавляем в выборку посты знаменитостей за период всех постов в кэше
                 ->whereIn('user_id', $this->user->getCelebrityFriends())
                 ->whereBetween('posts.created_at', [
                     Carbon::parse($postIds->first()),
